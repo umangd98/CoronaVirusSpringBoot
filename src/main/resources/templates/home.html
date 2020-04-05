@@ -6,7 +6,11 @@
     <title>Corona Virus Tracker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
+    <style>
+        th {
+        cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,25 +19,24 @@
 <h1>Coronavirus Tracker Application</h1>
 <p>This application tracks the coronavirus cases reported across the globe</p>
 <div class="jumbotron">
-    <h1 class="display-4" th:text="${totalReportedCases}"></h1>
+    <h1 class="display-4" th:text="${#numbers.formatInteger(totalReportedCases,3,'COMMA')}"></h1>
     <p class="lead">Total Cases Reported as of today</p>
     <hr class="my-4">
     <p>
         <span>New cases reported since previous day:</span>
-        <span th:text="${totalNewCases}"></span>
+        <span th:text="${#numbers.formatInteger(totalNewCases,3,'COMMA')}"></span>
     </p>
 </div>
 
     <table class="table">
         <tr>
-            <th>State</th>
+
             <th>Country</th>
             <th>Total Cases Reported</th>
             <th>Changes since last day</th>
 
         </tr>
         <tr th:each="locationStat : ${locationStats}">
-            <td th:text="${locationStat.state}"></td>
             <td th:text="${locationStat.country}"></td>
             <td th:text="${locationStat.latestTotalCases}">0</td>
             <td th:text="${locationStat.diffFromPrevDay}">0</td>
@@ -41,6 +44,23 @@
         </tr>
     </table>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+    $('th').click(function(){
+    var table = $(this).parents('table').eq(0)
+    var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()))
+    this.asc = !this.asc
+    if (!this.asc){rows = rows.reverse()}
+    for (var i = 0; i < rows.length; i++){table.append(rows[i])}
+})
+function comparer(index) {
+    return function(a, b) {
+        var valA = getCellValue(a, index), valB = getCellValue(b, index)
+        return $.isNumeric(valA) && $.isNumeric(valB) ? valA - valB : valA.toString().localeCompare(valB)
+    }
+}
+function getCellValue(row, index){ return $(row).children('td').eq(index).text() }
+</script>
 </body>
 
 </html>

@@ -18,12 +18,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CoronaVirusDataService {
-    private static String VIRUS_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
+public class CoronaVirusDataService<globalnumber> {
+    private static String VIRUS_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/who_covid_19_situation_reports/who_covid_19_sit_rep_time_series/who_covid_19_sit_rep_time_series.csv";
     private List<LocationStats> allStats = new ArrayList<>();
 
     public List<LocationStats> getAllStats() {
         return allStats;
+    }
+    private int globalnumber;
+    private int prevglobalnumber;
+
+    public int getGlobalnumber() {
+        return globalnumber;
+    }
+
+    public int getPrevglobalnumber() {
+        return prevglobalnumber;
     }
 
     @PostConstruct
@@ -40,7 +50,7 @@ public class CoronaVirusDataService {
         Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(csvBodyReader);
         for (CSVRecord record : records) {
             LocationStats locationStats = new LocationStats();
-            locationStats.setState(record.get("Province/State"));
+            locationStats.setState(record.get("Province/States"));
             locationStats.setCountry(record.get("Country/Region"));
 //            System.out.println(Integer.parseInt(record.get(record.size()-1)));
             int latestCases=0;
@@ -53,8 +63,14 @@ public class CoronaVirusDataService {
             locationStats.setLatestTotalCases(latestCases);
             if(latestCases!=0)
             {locationStats.setDiffFromPrevDay(latestCases-prevDayCases);}
-
-            newStats.add(locationStats);
+            if(locationStats.getCountry().equals("Globally")&&(locationStats.getState().equals("Confirmed")))
+            {
+                globalnumber=locationStats.getLatestTotalCases();
+                prevglobalnumber = locationStats.getDiffFromPrevDay();
+            }
+            boolean onlyCountries = locationStats.getState().equals("Confirmed")||locationStats.getState().equals("Deaths");
+            if(locationStats.getLatestTotalCases()!=0&&!onlyCountries)
+                newStats.add(locationStats);
         }
         this.allStats = newStats;
     }

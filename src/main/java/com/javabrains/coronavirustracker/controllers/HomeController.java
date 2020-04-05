@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Controller
 public class HomeController {
@@ -18,12 +19,15 @@ public class HomeController {
     public String home(Model model)
     {
         List<LocationStats> allStats = service.getAllStats();
-        int totalCases = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
+//        int totalCases = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
         int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
-
+        int total = allStats.stream().findFirst().orElse(null).getLatestTotalCases();
+//        System.out.println(total);
+        LocationStats global = new LocationStats();
+        global.setCountry("China");
         model.addAttribute("locationStats", allStats);
-        model.addAttribute("totalReportedCases", totalCases);
-        model.addAttribute("totalNewCases", totalNewCases);
+        model.addAttribute("totalReportedCases", service.getGlobalnumber());
+        model.addAttribute("totalNewCases", service.getPrevglobalnumber());
 
         return "home";
     }
